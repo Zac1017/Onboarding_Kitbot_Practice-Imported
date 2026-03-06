@@ -35,34 +35,39 @@ public class LEDLights extends SubsystemBase {
     private DoubleSupplier leftShooterTorque;
     private DoubleSupplier rightShooterTorque;
 
-    public enum UnderglowStates {
-        PASSIVE(LEDPattern.solid(allyColor)),
-        AUTO_COMPLETED(LEDPattern.solid(Color.kGreen)),
-        CLIMBING(LEDPattern.rainbow(255, 120).scrollAtRelativeSpeed(Percent.per(Second).of(0.5)));
+    private static Map<Double, Color> cantAimMap = Map.of(0.0, Color.kBlack, 0.5, Color.kWhite);
+    private static LEDPattern base = LEDPattern.rainbow(255, 255);
+    private static LEDPattern cantAimMask = LEDPattern.steps(cantAimMap).scrollAtRelativeSpeed(Percent.per(Second).of(0.25));
+    private static LEDPattern mask = base.mask(cantAimMask);
 
-        private LEDPattern pattern;
-
-        private UnderglowStates(LEDPattern pattern) {
-            this.pattern = pattern;
-        }
-
-        public void apply(final double brightness) {
-            LEDPattern patternToSet = pattern.atBrightness(Percent.of(brightness));
-            patternToSet.applyTo(m_underglowBufferView);
-            m_led.setData(m_ledBuffer);
-        }
-
-        public LEDPattern getPattern() {
-            return pattern;
-        }
-    }
+        public enum UnderglowStates {
+            PASSIVE(LEDPattern.solid(allyColor)),
+            AUTO_COMPLETED(LEDPattern.solid(Color.kGreen)),
+            CLIMBING(LEDPattern.rainbow(255, 120).scrollAtRelativeSpeed(Percent.per(Second).of(25)));
     
-    public enum TurretStates {
-        PASSIVE(LEDPattern.solid(allyColor).breathe(Second.of(2))),
-        FIRING(LEDPattern.solid(allyColor)),
-        CANT_AIM(LEDPattern.solid(allyColor).mask(LEDPattern.steps(Map.of(0, allyColor)).scrollAtRelativeSpeed(Percent.per(Second).of(0.5)))),
-        AUTO_COMPLETED(LEDPattern.solid(Color.kGreen)),
-        CLIMBING(LEDPattern.rainbow(255, 120).scrollAtRelativeSpeed(Percent.per(Second).of(0.5)));
+            private LEDPattern pattern;
+    
+            private UnderglowStates(LEDPattern pattern) {
+                this.pattern = pattern;
+            }
+    
+            public void apply(final double brightness) {
+                LEDPattern patternToSet = pattern.atBrightness(Percent.of(Math.abs(brightness)));
+                patternToSet.applyTo(m_underglowBufferView);
+                m_led.setData(m_ledBuffer);
+            }
+    
+            public LEDPattern getPattern() {
+                return pattern;
+            }
+        }
+        
+        public enum TurretStates {
+            PASSIVE(LEDPattern.solid(allyColor).breathe(Second.of(2))),
+            FIRING(LEDPattern.solid(allyColor)),
+            CANT_AIM(mask),
+            AUTO_COMPLETED(LEDPattern.solid(Color.kGreen)),
+            CLIMBING(LEDPattern.rainbow(255, 120).scrollAtRelativeSpeed(Percent.per(Second).of(25)));
 
         private LEDPattern pattern;
 
@@ -71,8 +76,8 @@ public class LEDLights extends SubsystemBase {
         }
 
         public void apply(final double leftBrightness, final double rightBrightness) {
-            LEDPattern patternToSetLeft = pattern.atBrightness(Percent.of(leftBrightness));
-            LEDPattern patternToSetRight = pattern.atBrightness(Percent.of(rightBrightness));
+            LEDPattern patternToSetLeft = pattern.atBrightness(Percent.of(Math.abs(leftBrightness)));
+            LEDPattern patternToSetRight = pattern.atBrightness(Percent.of(Math.abs(rightBrightness)));
             patternToSetLeft.applyTo(m_leftTurretBufferView);
             patternToSetRight.applyTo(m_rightTurretBufferView);
             m_led.setData(m_ledBuffer);
