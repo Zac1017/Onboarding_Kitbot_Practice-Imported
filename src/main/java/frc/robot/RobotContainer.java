@@ -21,16 +21,22 @@ public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   /*private final Intake intakeSubsystem = new Intake();
   private final TankDrive tankDriveSubsystem = new TankDrive();*/ //take out later
-  private final LEDLights lightBulb = new LEDLights();
+  private final LEDLights lightBulb;
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
-  private final CommandXboxController driverController =
+  private final CommandXboxController m_driverController =
       new CommandXboxController(OperatorConstants.kDriverControllerPort);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     // Configure the trigger bindings
-    
+    lightBulb = new LEDLights(
+      () -> m_driverController.y().getAsBoolean(),
+      () -> m_driverController.x().getAsBoolean(),
+      () -> m_driverController.b().getAsBoolean(),
+      () -> m_driverController.getLeftY(),
+      () -> m_driverController.getRightY()
+    );
     configureBindings();
   }
 
@@ -55,13 +61,6 @@ public class RobotContainer {
     // cancelling on release.
     driverController.rightTrigger().onTrue(new IntakeCommand(intakeSubsystem));
 */ //take out later
-    lightBulb.isClimbing = () -> driverController.y().getAsBoolean();
-    lightBulb.isFiring = () -> driverController.x().getAsBoolean();
-    lightBulb.cantAim = () -> driverController.b().getAsBoolean();
-    lightBulb.isAutoComplete = () -> driverController.a().getAsBoolean();
-    
-    lightBulb.shooterTorque = () -> driverController.getRightY();
-
 
   }
 
